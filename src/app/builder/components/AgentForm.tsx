@@ -436,18 +436,18 @@ function ToolsTab({ tools, errors, onAdd, onBulkAdd, onUpdate, onDelete }: Tools
             Define capabilities the model can invoke
           </p>
         </div>
-        <div className="flex gap-2 relative">
+        <div className="flex gap-3 relative">
           <button
             onClick={() => setShowLibrary(!showLibrary)}
-            className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 text-white rounded-lg transition-colors text-sm border border-white/5"
+            className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 text-white rounded-lg transition-all border border-white/10 hover:border-neon-purple/50 group"
           >
-            <Sparkles className="w-4 h-4 text-neon-purple" />
+            <Sparkles className="w-4 h-4 text-neon-purple group-hover:scale-110 transition-transform" />
             Add Capability
           </button>
           
           {showLibrary && (
-            <div className="absolute top-full right-0 mt-2 w-64 bg-black/90 border border-white/10 rounded-xl shadow-xl backdrop-blur-xl z-50 p-2">
-              <p className="text-xs font-medium text-white/40 px-2 py-1 uppercase tracking-wider">Integration Library</p>
+            <div className="absolute top-full right-0 mt-2 w-64 bg-[#0a0a0a] border border-white/10 rounded-xl shadow-2xl z-50 p-2 overflow-hidden">
+              <p className="text-[10px] font-medium text-white/40 px-3 py-2 uppercase tracking-widest">Integration Library</p>
               {TOOL_LIBRARIES.map(lib => (
                 <button
                   key={lib.id}
@@ -456,12 +456,12 @@ function ToolsTab({ tools, errors, onAdd, onBulkAdd, onUpdate, onDelete }: Tools
                     onBulkAdd(toolsToAdd);
                     setShowLibrary(false);
                   }}
-                  className="w-full flex items-center gap-3 px-3 py-2 text-left rounded-lg hover:bg-white/10 transition-colors group"
+                  className="w-full flex items-center gap-3 px-3 py-2.5 text-left rounded-lg hover:bg-white/5 transition-colors group"
                 >
                   <span className="text-lg group-hover:scale-110 transition-transform">{lib.icon}</span>
                   <div>
                     <div className="text-sm text-white font-medium">{lib.name}</div>
-                    <div className="text-xs text-white/40">{lib.tools.length} tools</div>
+                    <div className="text-[10px] text-white/40">{lib.tools.length} tools</div>
                   </div>
                 </button>
               ))}
@@ -470,9 +470,9 @@ function ToolsTab({ tools, errors, onAdd, onBulkAdd, onUpdate, onDelete }: Tools
 
           <button
             onClick={() => onAdd()}
-            className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors text-sm border border-white/5"
+            className="flex items-center gap-2 px-4 py-2 bg-white text-black hover:bg-gray-200 rounded-lg transition-all font-medium shadow-lg shadow-white/5"
           >
-            <Plus className="w-4 h-4" />
+            <Plus className="w-4 h-4 stroke-[3]" />
             Custom Tool
           </button>
         </div>

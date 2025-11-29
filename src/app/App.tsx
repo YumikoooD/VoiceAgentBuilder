@@ -163,56 +163,90 @@ function App() {
   }, [isPTTActive]);
 
   const fetchEphemeralKey = async (): Promise<string | null> => {
-    logClientEvent({ url: "/session" }, "fetch_session_token_request");
-    const tokenResponse = await fetch("/api/session");
-    const data = await tokenResponse.json();
-    logServerEvent(data, "fetch_session_token_response");
+    try {
+      logClientEvent({ url: "/session" }, "fetch_session_token_request");
+      const tokenResponse = await fetch("/api/session");
+      
+      if (!tokenResponse.ok) {
+        throw new Error(`Session API returned ${tokenResponse.status}: ${tokenResponse.statusText}`);
+      }
 
-    if (!data.client_secret?.value) {
-      logClientEvent(data, "error.no_ephemeral_key");
-      console.error("No ephemeral key provided by the server");
+      const data = await tokenResponse.json();
+      logServerEvent(data, "fetch_session_token_response");
+
+      if (!data.client_secret?.value) {
+        logClientEvent(data, "error.no_ephemeral_key");
+        console.error("No ephemeral key provided by the server", data);
+        setSessionStatus("DISCONNECTED");
+        return null;
+      }
+
+      const key = data.client_secret.value;
+      if (typeof key !== 'string' || key.trim().length === 0) {
+        throw new Error('Ephemeral key is empty or invalid');
+      }
+
+      return key;
+    } catch (err) {
+      console.error('[fetchEphemeralKey] Error:', err);
+      logClientEvent({ error: err instanceof Error ? err.message : 'Unknown error' }, "error.fetch_session_token");
       setSessionStatus("DISCONNECTED");
       return null;
     }
-
-    return data.client_secret.value;
   };
 
   const connectToRealtime = async () => {
     const agentSetKey = searchParams.get("agentConfig") || "default";
-    if (mergedSdkScenarioMap[agentSetKey]) {
-      if (sessionStatus !== "DISCONNECTED") return;
-      setSessionStatus("CONNECTING");
-
-      try {
-        const EPHEMERAL_KEY = await fetchEphemeralKey();
-        if (!EPHEMERAL_KEY) return;
-
-        const reorderedAgents = [...mergedSdkScenarioMap[agentSetKey]];
-        const idx = reorderedAgents.findIndex((a) => a.name === selectedAgentName);
-        if (idx > 0) {
-          const [agent] = reorderedAgents.splice(idx, 1);
-          reorderedAgents.unshift(agent);
-        }
-
-        // Get company name for guardrails
-        const companyName = agentSetKey.startsWith('custom_')
-          ? agentSetKey.replace('custom_', '')
-          : SCENARIO_DISPLAY_NAMES[agentSetKey] || 'Voice Agent';
-        const guardrail = createModerationGuardrail(companyName);
-
-        await connect({
-          getEphemeralKey: async () => EPHEMERAL_KEY,
-          initialAgents: reorderedAgents,
-          audioElement: sdkAudioElement,
-          outputGuardrails: [guardrail],
-          extraContext: { addTranscriptBreadcrumb },
-        });
-      } catch (err) {
-        console.error("Error connecting via SDK:", err);
-        setSessionStatus("DISCONNECTED");
-      }
+    
+    // Prevent multiple connection attempts
+    if (sessionStatus !== "DISCONNECTED") {
+      console.warn('[connectToRealtime] Already connected or connecting, skipping...');
       return;
+    }
+
+    if (!mergedSdkScenarioMap[agentSetKey]) {
+      console.error(`[connectToRealtime] No agent set found for key: ${agentSetKey}`);
+      return;
+    }
+
+    const reorderedAgents = [...mergedSdkScenarioMap[agentSetKey]];
+    if (reorderedAgents.length === 0) {
+      console.error('[connectToRealtime] No agents available in agent set');
+      return;
+    }
+
+    setSessionStatus("CONNECTING");
+
+    try {
+      const EPHEMERAL_KEY = await fetchEphemeralKey();
+      if (!EPHEMERAL_KEY) {
+        console.error('[connectToRealtime] Failed to fetch ephemeral key');
+        setSessionStatus("DISCONNECTED");
+        return;
+      }
+
+      const idx = reorderedAgents.findIndex((a) => a.name === selectedAgentName);
+      if (idx > 0) {
+        const [agent] = reorderedAgents.splice(idx, 1);
+        reorderedAgents.unshift(agent);
+      }
+
+      // Get company name for guardrails
+      const companyName = agentSetKey.startsWith('custom_')
+        ? agentSetKey.replace('custom_', '')
+        : SCENARIO_DISPLAY_NAMES[agentSetKey] || 'Voice Agent';
+      const guardrail = createModerationGuardrail(companyName);
+
+      await connect({
+        getEphemeralKey: async () => EPHEMERAL_KEY,
+        initialAgents: reorderedAgents,
+        audioElement: sdkAudioElement,
+        outputGuardrails: [guardrail],
+        extraContext: { addTranscriptBreadcrumb },
+      });
+    } catch (err) {
+      console.error("[connectToRealtime] Error connecting:", err);
+      setSessionStatus("DISCONNECTED");
     }
   };
 

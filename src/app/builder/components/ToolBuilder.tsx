@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { ToolConfig, ToolParameter, PARAMETER_TYPES, createEmptyParameter } from '../types';
+import { ChevronRight, X, Plus } from 'lucide-react';
 
 interface ToolBuilderProps {
   tool: ToolConfig;
@@ -37,28 +38,21 @@ export default function ToolBuilder({ tool, index, errors, onChange, onDelete }:
   };
 
   return (
-    <div className="bg-slate-900/50 border border-slate-600 rounded-lg overflow-hidden">
+    <div className="bg-[#0a0a0a] border border-white/10 rounded-xl overflow-hidden transition-colors hover:border-white/20">
       {/* Tool Header */}
       <div
-        className="px-4 py-3 bg-slate-800/50 flex items-center justify-between cursor-pointer"
+        className="px-4 py-3 flex items-center justify-between cursor-pointer bg-white/[0.02] hover:bg-white/[0.04] transition-colors"
         onClick={() => setIsExpanded(!isExpanded)}
       >
         <div className="flex items-center gap-3">
-          <button className="text-slate-400">
-            <svg
-              className={`w-4 h-4 transition-transform ${isExpanded ? 'rotate-90' : ''}`}
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-          </button>
-          <span className="text-white font-medium">
+          <ChevronRight 
+            className={`w-4 h-4 text-white/40 transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`} 
+          />
+          <span className="text-white font-medium text-sm tracking-wide">
             {tool.name || `Tool ${index + 1}`}
           </span>
           {tool.parameters.length > 0 && (
-            <span className="text-xs px-2 py-0.5 bg-slate-700 text-slate-300 rounded-full">
+            <span className="text-[10px] px-2 py-0.5 bg-white/10 text-white/60 rounded-full font-mono">
               {tool.parameters.length} param{tool.parameters.length !== 1 ? 's' : ''}
             </span>
           )}
@@ -68,41 +62,40 @@ export default function ToolBuilder({ tool, index, errors, onChange, onDelete }:
             e.stopPropagation();
             onDelete();
           }}
-          className="p-1.5 text-slate-400 hover:text-red-400 hover:bg-slate-700 rounded transition-colors"
+          className="p-1.5 text-white/20 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
         >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-          </svg>
+          <X className="w-4 h-4" />
         </button>
       </div>
 
       {/* Tool Content */}
       {isExpanded && (
-        <div className="p-4 space-y-4">
+        <div className="p-5 space-y-6 border-t border-white/5">
           {/* Tool Name */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-300 mb-1.5">
-                Tool Name <span className="text-red-400">*</span>
-              </label>
-              <input
-                type="text"
-                value={tool.name}
-                onChange={(e) => updateTool({ name: e.target.value })}
-                placeholder="e.g., searchProducts"
-                className={`w-full px-3 py-2 bg-slate-800 border rounded-lg text-white text-sm placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 ${
-                  errors[`tool_${index}_name`] ? 'border-red-500' : 'border-slate-600'
-                }`}
-              />
-              {errors[`tool_${index}_name`] && (
-                <p className="mt-1 text-xs text-red-400">{errors[`tool_${index}_name`]}</p>
-              )}
-            </div>
+          <div>
+            <label className="block text-xs font-light text-white/40 mb-2 uppercase tracking-wider">
+              Tool Name <span className="text-red-400">*</span>
+            </label>
+            <input
+              type="text"
+              value={tool.name}
+              onChange={(e) => updateTool({ name: e.target.value })}
+              placeholder="e.g., search_products"
+              className={`w-full px-4 py-2.5 bg-white/5 border rounded-lg text-white text-sm placeholder-white/20 focus:outline-none focus:border-neon-cyan/50 focus:bg-white/10 transition-all font-mono ${
+                errors[`tool_${index}_name`] ? 'border-red-500/50' : 'border-white/10'
+              }`}
+            />
+            {errors[`tool_${index}_name`] && (
+              <p className="mt-1.5 text-xs text-red-400 flex items-center gap-1">
+                <span className="w-1 h-1 bg-red-400 rounded-full" />
+                {errors[`tool_${index}_name`]}
+              </p>
+            )}
           </div>
 
           {/* Tool Description */}
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1.5">
+            <label className="block text-xs font-light text-white/40 mb-2 uppercase tracking-wider">
               Description <span className="text-red-400">*</span>
             </label>
             <textarea
@@ -110,35 +103,39 @@ export default function ToolBuilder({ tool, index, errors, onChange, onDelete }:
               onChange={(e) => updateTool({ description: e.target.value })}
               placeholder="Describe what this tool does and when it should be used..."
               rows={2}
-              className={`w-full px-3 py-2 bg-slate-800 border rounded-lg text-white text-sm placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none ${
-                errors[`tool_${index}_description`] ? 'border-red-500' : 'border-slate-600'
+              className={`w-full px-4 py-2.5 bg-white/5 border rounded-lg text-white text-sm placeholder-white/20 focus:outline-none focus:border-neon-cyan/50 focus:bg-white/10 transition-all resize-none ${
+                errors[`tool_${index}_description`] ? 'border-red-500/50' : 'border-white/10'
               }`}
             />
             {errors[`tool_${index}_description`] && (
-              <p className="mt-1 text-xs text-red-400">{errors[`tool_${index}_description`]}</p>
+              <p className="mt-1.5 text-xs text-red-400 flex items-center gap-1">
+                <span className="w-1 h-1 bg-red-400 rounded-full" />
+                {errors[`tool_${index}_description`]}
+              </p>
             )}
           </div>
 
           {/* Parameters */}
           <div>
-            <div className="flex items-center justify-between mb-2">
-              <label className="block text-sm font-medium text-slate-300">
+            <div className="flex items-center justify-between mb-3">
+              <label className="text-xs font-light text-white/40 uppercase tracking-wider">
                 Parameters
               </label>
               <button
                 onClick={addParameter}
-                className="text-sm text-emerald-400 hover:text-emerald-300 transition-colors"
+                className="flex items-center gap-1.5 text-xs font-medium text-neon-cyan hover:text-neon-cyan/80 transition-colors"
               >
-                + Add Parameter
+                <Plus className="w-3 h-3" />
+                Add Parameter
               </button>
             </div>
 
             {tool.parameters.length === 0 ? (
-              <div className="text-center py-6 bg-slate-800/50 rounded-lg border border-dashed border-slate-600">
-                <p className="text-sm text-slate-400">No parameters defined</p>
+              <div className="text-center py-8 bg-white/[0.02] rounded-lg border border-dashed border-white/10">
+                <p className="text-xs text-white/30">No parameters defined</p>
                 <button
                   onClick={addParameter}
-                  className="mt-2 text-sm text-emerald-400 hover:text-emerald-300"
+                  className="mt-2 text-xs text-neon-cyan hover:underline"
                 >
                   Add a parameter
                 </button>
@@ -170,66 +167,67 @@ interface ParameterRowProps {
 
 function ParameterRow({ parameter, onChange, onDelete }: ParameterRowProps) {
   return (
-    <div className="flex items-start gap-3 p-3 bg-slate-800/50 rounded-lg">
-      <div className="flex-1 grid grid-cols-1 md:grid-cols-4 gap-3">
-        {/* Parameter Name */}
-        <div>
-          <input
-            type="text"
-            value={parameter.name}
-            onChange={(e) => onChange({ name: e.target.value })}
-            placeholder="name"
-            className="w-full px-2.5 py-1.5 bg-slate-700 border border-slate-600 rounded text-white text-sm placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
-          />
-        </div>
+    <div className="grid grid-cols-[1fr_120px_2fr_auto] gap-3 items-start p-3 bg-white/[0.03] rounded-lg border border-white/5 hover:border-white/10 transition-colors">
+      {/* Parameter Name */}
+      <input
+        type="text"
+        value={parameter.name}
+        onChange={(e) => onChange({ name: e.target.value })}
+        placeholder="name"
+        className="w-full px-3 py-2 bg-black/40 border border-white/10 rounded-md text-white text-xs placeholder-white/20 focus:outline-none focus:border-white/20 focus:bg-black/60 font-mono"
+      />
 
-        {/* Parameter Type */}
-        <div>
-          <select
-            value={parameter.type}
-            onChange={(e) => onChange({ type: e.target.value as ToolParameter['type'] })}
-            className="w-full px-2.5 py-1.5 bg-slate-700 border border-slate-600 rounded text-white text-sm focus:outline-none focus:ring-1 focus:ring-emerald-500"
-          >
-            {PARAMETER_TYPES.map(type => (
-              <option key={type.value} value={type.value}>
-                {type.label}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Description */}
-        <div className="md:col-span-2">
-          <input
-            type="text"
-            value={parameter.description}
-            onChange={(e) => onChange({ description: e.target.value })}
-            placeholder="Description"
-            className="w-full px-2.5 py-1.5 bg-slate-700 border border-slate-600 rounded text-white text-sm placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
-          />
+      {/* Parameter Type */}
+      <div className="relative">
+        <select
+          value={parameter.type}
+          onChange={(e) => onChange({ type: e.target.value as ToolParameter['type'] })}
+          className="w-full px-3 py-2 bg-black/40 border border-white/10 rounded-md text-white text-xs focus:outline-none focus:border-white/20 focus:bg-black/60 appearance-none cursor-pointer"
+        >
+          {PARAMETER_TYPES.map(type => (
+            <option key={type.value} value={type.value}>
+              {type.label}
+            </option>
+          ))}
+        </select>
+        <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none">
+          <ChevronRight className="w-3 h-3 text-white/20 rotate-90" />
         </div>
       </div>
 
-      {/* Required Toggle */}
-      <div className="flex items-center gap-2">
-        <label className="flex items-center gap-1.5 cursor-pointer">
+      {/* Description */}
+      <input
+        type="text"
+        value={parameter.description}
+        onChange={(e) => onChange({ description: e.target.value })}
+        placeholder="Description"
+        className="w-full px-3 py-2 bg-black/40 border border-white/10 rounded-md text-white text-xs placeholder-white/20 focus:outline-none focus:border-white/20 focus:bg-black/60"
+      />
+
+      {/* Actions */}
+      <div className="flex items-center gap-3 h-full pt-1">
+        <label className="flex items-center gap-2 cursor-pointer group">
+          <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${
+            parameter.required 
+              ? 'bg-neon-cyan border-neon-cyan' 
+              : 'bg-transparent border-white/20 group-hover:border-white/40'
+          }`}>
+            {parameter.required && <div className="w-2 h-2 bg-black rounded-sm" />}
+          </div>
           <input
             type="checkbox"
             checked={parameter.required}
             onChange={(e) => onChange({ required: e.target.checked })}
-            className="w-4 h-4 rounded border-slate-600 text-emerald-500 focus:ring-emerald-500 bg-slate-700"
+            className="hidden"
           />
-          <span className="text-xs text-slate-400">Required</span>
+          <span className="text-[10px] text-white/40 group-hover:text-white/60 uppercase tracking-wide">Req</span>
         </label>
 
-        {/* Delete Button */}
         <button
           onClick={onDelete}
-          className="p-1 text-slate-400 hover:text-red-400 transition-colors"
+          className="p-1.5 text-white/20 hover:text-red-400 transition-colors"
         >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-          </svg>
+          <X className="w-3.5 h-3.5" />
         </button>
       </div>
     </div>

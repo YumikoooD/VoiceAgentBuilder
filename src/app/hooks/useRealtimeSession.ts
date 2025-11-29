@@ -118,36 +118,70 @@ export function useRealtimeSession(callbacks: RealtimeSessionCallbacks = {}) {
       extraContext,
       outputGuardrails,
     }: ConnectOptions) => {
-      if (sessionRef.current) return; // already connected
+      // Prevent multiple simultaneous connections
+      if (sessionRef.current) {
+        console.warn('RealtimeSession already exists, disconnecting first...');
+        sessionRef.current.close();
+        sessionRef.current = null;
+      }
+
+      if (status === 'CONNECTING') {
+        console.warn('Connection already in progress, skipping...');
+        return;
+      }
 
       updateStatus('CONNECTING');
 
-      const ek = await getEphemeralKey();
-      const rootAgent = initialAgents[0];
+      try {
+        const ek = await getEphemeralKey();
+        
+        if (!ek || typeof ek !== 'string' || ek.trim().length === 0) {
+          throw new Error('Invalid ephemeral key received');
+        }
 
-      sessionRef.current = new RealtimeSession(rootAgent, {
-        transport: new OpenAIRealtimeWebRTC({
-          audioElement,
-          // Set preferred codec before offer creation
-          changePeerConnection: async (pc: RTCPeerConnection) => {
-            applyCodec(pc);
-            return pc;
-          },
-        }),
-        model: 'gpt-4o-realtime-preview-2025-06-03',
-        config: {
-          inputAudioTranscription: {
-            model: 'gpt-4o-mini-transcribe',
-          },
-        },
-        outputGuardrails: outputGuardrails ?? [],
-        context: extraContext ?? {},
-      });
+        if (!initialAgents || initialAgents.length === 0) {
+          throw new Error('No agents provided');
+        }
 
-      await sessionRef.current.connect({ apiKey: ek });
-      updateStatus('CONNECTED');
+        const rootAgent = initialAgents[0];
+
+        sessionRef.current = new RealtimeSession(rootAgent, {
+          transport: new OpenAIRealtimeWebRTC({
+            audioElement,
+            // Set preferred codec before offer creation
+            changePeerConnection: async (pc: RTCPeerConnection) => {
+              applyCodec(pc);
+              return pc;
+            },
+          }),
+          model: 'gpt-4o-realtime-preview-2025-06-03',
+          config: {
+            inputAudioTranscription: {
+              model: 'gpt-4o-mini-transcribe',
+            },
+          },
+          outputGuardrails: outputGuardrails ?? [],
+          context: extraContext ?? {},
+        });
+
+        await sessionRef.current.connect({ apiKey: ek });
+        updateStatus('CONNECTED');
+      } catch (err) {
+        console.error('[useRealtimeSession] Connection error:', err);
+        // Clean up on error
+        if (sessionRef.current) {
+          try {
+            sessionRef.current.close();
+          } catch (closeErr) {
+            console.error('[useRealtimeSession] Error closing session:', closeErr);
+          }
+          sessionRef.current = null;
+        }
+        updateStatus('DISCONNECTED');
+        throw err; // Re-throw to let caller handle
+      }
     },
-    [callbacks, updateStatus],
+    [status, callbacks, updateStatus],
   );
 
   const disconnect = useCallback(() => {

@@ -13,7 +13,8 @@ import {
   Clock,
   ArrowLeft,
   Copy,
-  Lock
+  Lock,
+  Sparkles
 } from 'lucide-react';
 
 interface AgentListProps {
@@ -22,9 +23,10 @@ interface AgentListProps {
   onDelete: (agentId: string) => void;
   onPreview: (agent: AgentConfig) => void;
   onCreateNew: () => void;
+  onAIGenerate?: () => void;
 }
 
-export default function AgentList({ agents, onEdit, onDelete, onPreview, onCreateNew }: AgentListProps) {
+export default function AgentList({ agents, onEdit, onDelete, onPreview, onCreateNew, onAIGenerate }: AgentListProps) {
   if (agents.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-32 text-center">
@@ -34,22 +36,33 @@ export default function AgentList({ agents, onEdit, onDelete, onPreview, onCreat
           transition={{ duration: 0.5 }}
           className="w-24 h-24 rounded-full bg-white/5 flex items-center justify-center mb-6 border border-white/5 relative"
         >
-          <div className="absolute inset-0 bg-neon-cyan/10 blur-xl rounded-full" />
-          <Mic className="w-10 h-10 text-white/20" />
+          <div className="absolute inset-0 bg-gradient-to-br from-neon-purple/20 to-neon-cyan/20 blur-xl rounded-full opacity-50" />
+          <Mic className="w-10 h-10 text-white/40 relative z-10" />
         </motion.div>
         
         <h2 className="text-2xl font-light text-white mb-2 tracking-tight">No Agents Created</h2>
-        <p className="text-white/40 mb-8 max-w-sm leading-relaxed">
+        <p className="text-white/40 mb-10 max-w-sm leading-relaxed text-sm">
           Get started by building your first custom voice agent. Define its personality, voice, and capabilities.
         </p>
         
-        <button
-          onClick={onCreateNew}
-          className="group px-8 py-3 bg-white text-black rounded-full font-medium hover:bg-white/90 transition-all shadow-[0_0_20px_rgba(255,255,255,0.2)] hover:scale-105 flex items-center gap-2"
-        >
-          <Plus className="w-4 h-4" />
-          Create First Agent
-        </button>
+        <div className="flex items-center gap-4">
+          {onAIGenerate && (
+            <button
+              onClick={onAIGenerate}
+              className="flex items-center gap-2 px-6 py-3 bg-white/5 hover:bg-white/10 text-neon-cyan text-sm font-medium rounded-full transition-all border border-neon-purple/30 hover:border-neon-cyan/50 hover:shadow-[0_0_20px_-5px_rgba(6,182,212,0.3)] group"
+            >
+              <Sparkles className="w-4 h-4 group-hover:rotate-12 transition-transform" />
+              AI Generate
+            </button>
+          )}
+          <button
+            onClick={onCreateNew}
+            className="flex items-center gap-2 px-6 py-3 bg-white text-black hover:bg-gray-100 text-sm font-bold rounded-full transition-all hover:scale-105 active:scale-95 shadow-lg shadow-white/10"
+          >
+            <Plus className="w-4 h-4 stroke-[3]" />
+            Create Manually
+          </button>
+        </div>
       </div>
     );
   }
@@ -57,17 +70,40 @@ export default function AgentList({ agents, onEdit, onDelete, onPreview, onCreat
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* AI Generate Card */}
+        {onAIGenerate && (
+          <motion.button
+            onClick={onAIGenerate}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="group relative flex flex-col items-center justify-center p-8 rounded-3xl border border-neon-purple/20 hover:border-neon-cyan/50 bg-gradient-to-br from-neon-purple/5 to-neon-cyan/5 hover:from-neon-purple/10 hover:to-neon-cyan/10 transition-all duration-300 min-h-[320px] overflow-hidden"
+          >
+            <div className="absolute inset-0 bg-gradient-to-br from-neon-purple/10 to-neon-cyan/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+            <div className="absolute -top-10 -right-10 w-32 h-32 bg-neon-purple/20 rounded-full blur-3xl group-hover:bg-neon-cyan/20 transition-colors" />
+            
+            <div className="relative z-10 flex flex-col items-center">
+              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-neon-purple/20 to-neon-cyan/20 group-hover:from-neon-purple/30 group-hover:to-neon-cyan/30 flex items-center justify-center mb-4 transition-all border border-neon-purple/20 group-hover:border-neon-cyan/40">
+                <Sparkles className="w-8 h-8 text-neon-cyan group-hover:rotate-12 transition-transform" />
+              </div>
+              <span className="text-white/80 font-medium group-hover:text-white transition-colors block mb-2">AI Generate</span>
+              <span className="text-white/40 text-xs">Describe & create instantly</span>
+            </div>
+          </motion.button>
+        )}
+
         {/* Create New Card */}
         <motion.button
           onClick={onCreateNew}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.05 }}
           className="group relative flex flex-col items-center justify-center p-8 rounded-3xl border border-dashed border-white/10 hover:border-white/30 hover:bg-white/5 transition-all duration-300 min-h-[320px]"
         >
           <div className="w-16 h-16 rounded-full bg-white/5 group-hover:bg-white/10 flex items-center justify-center mb-4 transition-colors">
             <Plus className="w-8 h-8 text-white/40 group-hover:text-white/80 transition-colors" />
           </div>
-          <span className="text-white/60 font-medium group-hover:text-white transition-colors">Create New Agent</span>
+          <span className="text-white/60 font-medium group-hover:text-white transition-colors block mb-2">Create Manually</span>
+          <span className="text-white/30 text-xs">Full control over config</span>
         </motion.button>
 
         {/* Agent Cards */}
@@ -197,7 +233,7 @@ function AgentCard({ agent, index, onEdit, onDelete, onPreview }: AgentCardProps
       </div>
 
       {/* Footer */}
-      <div className="mt-auto flex items-center justify-between pt-4 border-t border-white/5">
+      <div className="mt-auto pt-6 border-t border-white/5 flex items-center justify-between">
          <div className="flex items-center gap-1.5 text-[10px] text-white/20 font-mono uppercase tracking-widest">
             <Clock className="w-3 h-3" />
             {new Date(agent.updatedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
@@ -205,12 +241,10 @@ function AgentCard({ agent, index, onEdit, onDelete, onPreview }: AgentCardProps
          
          <button
           onClick={onPreview}
-          className="pl-3 pr-2 py-1.5 rounded-full bg-white/5 hover:bg-white/10 text-white text-xs font-medium transition-colors flex items-center gap-2 group/btn border border-white/5 hover:border-white/20"
+          className="flex items-center gap-2 text-xs font-medium text-white/40 hover:text-white transition-colors group/btn"
         >
-          Details
-          <div className="w-5 h-5 rounded-full bg-white text-black flex items-center justify-center group-hover/btn:scale-110 transition-transform">
-            <ArrowLeft className="w-3 h-3 rotate-180" />
-          </div>
+          View Details
+          <ArrowLeft className="w-3 h-3 rotate-180 group-hover/btn:translate-x-0.5 transition-transform" />
         </button>
       </div>
     </motion.div>

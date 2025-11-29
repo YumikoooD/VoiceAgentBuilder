@@ -97,6 +97,26 @@ Create agents visually without writing code:
 3. **Tools** — Add capabilities like Gmail, Calendar, or custom functions
 4. **Handoffs** — Configure which agents can transfer to others
 
+### ✨ AI Agent Generator (One-Click Creation)
+
+Create complete agents with a single prompt! Click **"AI Generate"** and describe what you want:
+
+```
+"Snowboard shop assistant that helps customers find gear and book lessons"
+```
+
+The AI will automatically generate:
+- Agent name and voice selection
+- Detailed instructions with personality
+- Relevant tools (e.g., check_inventory, book_lesson, get_sizing_guide)
+- Example interactions and guidelines
+
+**Example prompts:**
+- "Personal fitness coach for home workouts"
+- "Restaurant booking assistant for fine dining"
+- "Tech support agent for a SaaS product"
+- "Language tutor for Spanish conversation practice"
+
 ### Adding Integrations
 
 Click **"Add Capability"** in the Tools tab to add pre-built integrations:

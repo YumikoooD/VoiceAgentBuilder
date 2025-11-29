@@ -3,57 +3,33 @@
 import React, { useState, useCallback } from 'react';
 import { AgentConfig, createEmptyAgent } from '../types';
 import { useAgentStorage } from '../hooks/useAgentStorage';
-import { allAgentSets } from '@/app/agentConfigs';
-import { convertFromRealtimeAgent } from '../utils/agentConverter';
 import AgentForm from './AgentForm';
 import AgentList from './AgentList';
 import PreviewPanel from './PreviewPanel';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Download, Upload, Plus } from 'lucide-react';
+import { Download, Upload, Plus, Sparkles } from 'lucide-react';
+import AIAgentGenerator from './AIAgentGenerator';
 
 export default function AgentBuilder() {
   const { agents, isLoaded, saveAgent, deleteAgent, exportAgents, importAgents, exportSingleAgent } = useAgentStorage();
   
-  // Convert built-in SCENARIOS to AgentConfig format
-  // Show scenarios as single entries with friendly names, not individual sub-agents
-  const SCENARIO_DISPLAY_INFO: Record<string, { name: string; description: string }> = {
-    customerSupport: {
-      name: '🎧 Customer Support',
-      description: 'Multi-tier support system with agent handoffs and escalation capabilities'
-    },
-    personalCoach: {
-      name: '🎯 Personal Coach',
-      description: 'Motivational coach for goal-setting, productivity, and personal development'
-    }
-  };
-
-  const builtInAgents = React.useMemo(() => {
-    return Object.entries(allAgentSets).map(([scenarioKey, agentSet]) => {
-      const primaryAgent = agentSet[0];
-      if (!primaryAgent) return null;
-      
-      const config = convertFromRealtimeAgent(primaryAgent, true);
-      const displayInfo = SCENARIO_DISPLAY_INFO[scenarioKey];
-      
-      // Override with user-friendly scenario info
-      config.id = `builtin_${scenarioKey}`;
-      config.name = displayInfo?.name || scenarioKey;
-      config.handoffDescription = displayInfo?.description || `Built-in scenario with ${agentSet.length} agent(s)`;
-      
-      return config;
-    }).filter((agent): agent is AgentConfig => agent !== null);
-  }, []);
-
-  const allAgents = React.useMemo(() => {
-    return [...builtInAgents, ...agents];
-  }, [builtInAgents, agents]);
+  // Only show user-created agents (no built-in demo agents)
+  const allAgents = agents;
 
   const [selectedAgent, setSelectedAgent] = useState<AgentConfig | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
+  const [showAIGenerator, setShowAIGenerator] = useState(false);
 
   const handleCreateNew = useCallback(() => {
     setSelectedAgent(createEmptyAgent());
+    setIsEditing(true);
+    setShowPreview(false);
+  }, []);
+
+  const handleAIGenerated = useCallback((agent: AgentConfig) => {
+    setShowAIGenerator(false);
+    setSelectedAgent(agent);
     setIsEditing(true);
     setShowPreview(false);
   }, []);
@@ -89,20 +65,11 @@ export default function AgentBuilder() {
 
   const handleCancel = useCallback(() => {
     setIsEditing(false);
-    if (!selectedAgent?.id) {
-      setSelectedAgent(null);
-    } else {
-      setShowPreview(true);
-    }
-  }, [selectedAgent]);
+    setShowPreview(false);
+    setSelectedAgent(null);
+  }, []);
 
   const handleDelete = useCallback((agentId: string) => {
-    const agentToDelete = allAgents.find(a => a.id === agentId);
-    if (agentToDelete?.isReadOnly) {
-      alert("Built-in agents cannot be deleted.");
-      return;
-    }
-
     if (confirm('Are you sure you want to delete this agent?')) {
       deleteAgent(agentId);
       if (selectedAgent?.id === agentId) {
@@ -111,7 +78,7 @@ export default function AgentBuilder() {
         setShowPreview(false);
       }
     }
-  }, [deleteAgent, selectedAgent, allAgents]);
+  }, [deleteAgent, selectedAgent]);
 
   const handleImport = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -153,29 +120,53 @@ export default function AgentBuilder() {
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <label className="p-2 rounded-full hover:bg-white/10 text-white/60 hover:text-white cursor-pointer transition-colors" title="Import Agents">
-            <Upload className="w-4 h-4" />
-            <input type="file" accept=".json" onChange={handleImport} className="hidden" />
-          </label>
-          <button
-            onClick={exportAgents}
-            disabled={agents.length === 0}
-            className="p-2 rounded-full hover:bg-white/10 text-white/60 hover:text-white disabled:opacity-30 transition-colors"
-            title="Export All"
-          >
-            <Download className="w-4 h-4" />
-          </button>
-          <div className="w-px h-6 bg-white/10 mx-2" />
-          <button
-            onClick={handleCreateNew}
-            className="flex items-center gap-2 px-4 py-1.5 bg-white/10 hover:bg-white/20 text-white text-xs font-medium rounded-full transition-all border border-white/5 hover:border-white/20"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            New Agent
-          </button>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 border-r border-white/10 pr-4">
+            <label 
+              className="p-2 rounded-full hover:bg-white/10 text-white/40 hover:text-white cursor-pointer transition-all duration-200 group" 
+              title="Import Agents"
+            >
+              <Upload className="w-4 h-4 group-hover:scale-110 transition-transform" />
+              <input type="file" accept=".json" onChange={handleImport} className="hidden" />
+            </label>
+            <button
+              onClick={exportAgents}
+              disabled={agents.length === 0}
+              className="p-2 rounded-full hover:bg-white/10 text-white/40 hover:text-white disabled:opacity-20 disabled:cursor-not-allowed transition-all duration-200 group"
+              title="Export All"
+            >
+              <Download className="w-4 h-4 group-hover:scale-110 transition-transform" />
+            </button>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setShowAIGenerator(true)}
+              className="flex items-center gap-2 px-5 py-2 bg-white/5 hover:bg-white/10 text-neon-cyan text-sm font-medium rounded-full transition-all border border-neon-purple/30 hover:border-neon-cyan/50 hover:shadow-[0_0_15px_-5px_rgba(6,182,212,0.3)] group"
+            >
+              <Sparkles className="w-4 h-4 group-hover:rotate-12 transition-transform" />
+              AI Generate
+            </button>
+            <button
+              onClick={handleCreateNew}
+              className="flex items-center gap-2 px-5 py-2 bg-white text-black hover:bg-gray-100 text-sm font-bold rounded-full transition-all hover:scale-105 active:scale-95 shadow-lg shadow-white/10"
+            >
+              <Plus className="w-4 h-4 stroke-[3]" />
+              New Agent
+            </button>
+          </div>
         </div>
       </header>
+
+      {/* AI Agent Generator Modal */}
+      <AnimatePresence>
+        {showAIGenerator && (
+          <AIAgentGenerator
+            onGenerated={handleAIGenerated}
+            onClose={() => setShowAIGenerator(false)}
+          />
+        )}
+      </AnimatePresence>
 
       {/* Main Content Area */}
       <main className="flex-1 pt-16 overflow-y-auto min-h-0">
@@ -233,6 +224,7 @@ export default function AgentBuilder() {
                   onDelete={handleDelete}
                   onPreview={handlePreview}
                   onCreateNew={handleCreateNew}
+                  onAIGenerate={() => setShowAIGenerator(true)}
                 />
               </div>
             </motion.div>
