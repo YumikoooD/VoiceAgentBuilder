@@ -1,5 +1,7 @@
 # Voice Agent Platform
 
+![Voice Agent Platform Screenshot](/public/screenshot_platform.png)
+
 A comprehensive voice agent platform built with Next.js, TypeScript, and the OpenAI Realtime API. This project demonstrates advanced patterns for building production-ready voice agents with multi-agent orchestration, real-time audio streaming, and intelligent agent handoffs.
 
 ## Overview
@@ -15,6 +17,26 @@ I built this platform to explore and demonstrate sophisticated voice agent archi
 - 📊 **Comprehensive Logging** - Full event tracking and conversation history
 - 🎚️ **Audio Controls** - Push-to-talk, codec selection, and audio recording
 - 🛠️ **Visual Agent Builder** - Create and configure agents without writing code
+
+## Agent Builder
+
+![Agent Builder Screenshot](/public/screenshot_builder.png)
+
+The platform includes a visual Agent Builder that allows you to create and configure agents without writing code.
+
+### Accessing the Builder
+
+1. Click the **"Open Builder"** button in the main app header
+2. Or navigate directly to [http://localhost:3000/builder](http://localhost:3000/builder)
+
+### Features
+
+- **Visual Agent Configuration** - Configure agent name, voice, and instructions through a form interface
+- **Tool Builder** - Define custom tools with parameters using a visual editor
+- **Handoff Management** - Configure which agents can transfer to other agents
+- **Preview & Export** - Preview agent configuration and export as JSON or TypeScript code
+- **Local Storage** - Agents are saved to browser localStorage for persistence
+- **Import/Export** - Import and export agent configurations as JSON files
 
 ## Architecture
 
