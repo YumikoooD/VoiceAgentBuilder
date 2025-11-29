@@ -13,8 +13,7 @@ import {
   Clock,
   ArrowLeft,
   Copy,
-  Lock,
-  Sparkles
+  Lock
 } from 'lucide-react';
 
 interface AgentListProps {

@@ -11,12 +11,17 @@ import {
   Wrench, 
   GitCompare, 
   Save, 
-  X, 
   Mic, 
   Sparkles, 
-  ChevronRight,
-  Plus
+  Plus,
+  Mail,
+  CheckCircle,
+  Loader2,
+  LogOut
 } from 'lucide-react';
+
+import { TOOL_LIBRARIES } from '../toolLibrary';
+import { useGmailAuth } from '@/app/hooks/useGmailAuth';
 
 interface AgentFormProps {
   agent: AgentConfig;
@@ -66,9 +71,15 @@ export default function AgentForm({ agent: initialAgent, existingAgents, onSave,
     }
   }, [agent, validate, onSave]);
 
-  const handleAddTool = useCallback(() => {
+  const handleAddTool = useCallback((tool?: ToolConfig) => {
     updateAgent({
-      tools: [...agent.tools, createEmptyTool()],
+      tools: [...agent.tools, tool || createEmptyTool()],
+    });
+  }, [agent.tools, updateAgent]);
+
+  const handleBulkAddTools = useCallback((newTools: ToolConfig[]) => {
+    updateAgent({
+      tools: [...agent.tools, ...newTools],
     });
   }, [agent.tools, updateAgent]);
 
@@ -180,6 +191,7 @@ export default function AgentForm({ agent: initialAgent, existingAgents, onSave,
                     tools={agent.tools}
                     errors={errors}
                     onAdd={handleAddTool}
+                    onBulkAdd={handleBulkAddTools}
                     onUpdate={handleUpdateTool}
                     onDelete={handleDeleteTool}
                   />
@@ -348,14 +360,75 @@ function InstructionsTab({ instructions, error, onChange }: InstructionsTabProps
 interface ToolsTabProps {
   tools: ToolConfig[];
   errors: Record<string, string>;
-  onAdd: () => void;
+  onAdd: (tool?: ToolConfig) => void;
+  onBulkAdd: (tools: ToolConfig[]) => void;
   onUpdate: (index: number, tool: ToolConfig) => void;
   onDelete: (index: number) => void;
 }
 
-function ToolsTab({ tools, errors, onAdd, onUpdate, onDelete }: ToolsTabProps) {
+function ToolsTab({ tools, errors, onAdd, onBulkAdd, onUpdate, onDelete }: ToolsTabProps) {
+  const [showLibrary, setShowLibrary] = useState(false);
+  const { isConnected, email, isLoading, error, connect, disconnect } = useGmailAuth();
+
+  // Check if agent has Gmail tools
+  const hasGmailTools = tools.some(t => t.name.startsWith('gmail_'));
+
   return (
     <div className="space-y-6">
+      {/* Gmail Connection Status - Show if agent has Gmail tools */}
+      {hasGmailTools && (
+        <div className={`p-4 rounded-xl border ${
+          isConnected 
+            ? 'bg-green-500/10 border-green-500/20' 
+            : 'bg-orange-500/10 border-orange-500/20'
+        }`}>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                isConnected ? 'bg-green-500/20' : 'bg-orange-500/20'
+              }`}>
+                <Mail className={`w-5 h-5 ${isConnected ? 'text-green-400' : 'text-orange-400'}`} />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium text-white">Gmail Integration</span>
+                  {isConnected && (
+                    <CheckCircle className="w-4 h-4 text-green-400" />
+                  )}
+                </div>
+                {isConnected ? (
+                  <p className="text-xs text-white/60">Connected as {email}</p>
+                ) : (
+                  <p className="text-xs text-orange-400">
+                    {error || 'Connect your Gmail to enable email tools'}
+                  </p>
+                )}
+              </div>
+            </div>
+            
+            {isLoading ? (
+              <Loader2 className="w-5 h-5 text-white/40 animate-spin" />
+            ) : isConnected ? (
+              <button
+                onClick={disconnect}
+                className="flex items-center gap-2 px-3 py-1.5 text-xs text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition-colors"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+                Disconnect
+              </button>
+            ) : (
+              <button
+                onClick={connect}
+                className="flex items-center gap-2 px-4 py-2 bg-white text-black rounded-lg text-sm font-medium hover:bg-white/90 transition-colors"
+              >
+                <Mail className="w-4 h-4" />
+                Connect Gmail
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-lg font-light text-white">Function Tools</h3>
@@ -363,13 +436,46 @@ function ToolsTab({ tools, errors, onAdd, onUpdate, onDelete }: ToolsTabProps) {
             Define capabilities the model can invoke
           </p>
         </div>
-        <button
-          onClick={onAdd}
-          className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors text-sm border border-white/5"
-        >
-          <Plus className="w-4 h-4" />
-          Add Tool
-        </button>
+        <div className="flex gap-2 relative">
+          <button
+            onClick={() => setShowLibrary(!showLibrary)}
+            className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 text-white rounded-lg transition-colors text-sm border border-white/5"
+          >
+            <Sparkles className="w-4 h-4 text-neon-purple" />
+            Add Capability
+          </button>
+          
+          {showLibrary && (
+            <div className="absolute top-full right-0 mt-2 w-64 bg-black/90 border border-white/10 rounded-xl shadow-xl backdrop-blur-xl z-50 p-2">
+              <p className="text-xs font-medium text-white/40 px-2 py-1 uppercase tracking-wider">Integration Library</p>
+              {TOOL_LIBRARIES.map(lib => (
+                <button
+                  key={lib.id}
+                  onClick={() => {
+                    const toolsToAdd = lib.tools.map(tool => ({ ...tool, id: crypto.randomUUID() }));
+                    onBulkAdd(toolsToAdd);
+                    setShowLibrary(false);
+                  }}
+                  className="w-full flex items-center gap-3 px-3 py-2 text-left rounded-lg hover:bg-white/10 transition-colors group"
+                >
+                  <span className="text-lg group-hover:scale-110 transition-transform">{lib.icon}</span>
+                  <div>
+                    <div className="text-sm text-white font-medium">{lib.name}</div>
+                    <div className="text-xs text-white/40">{lib.tools.length} tools</div>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+
+          <button
+            onClick={() => onAdd()}
+            className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors text-sm border border-white/5"
+          >
+            <Plus className="w-4 h-4" />
+            Custom Tool
+          </button>
+        </div>
       </div>
 
       {tools.length === 0 ? (
@@ -378,12 +484,20 @@ function ToolsTab({ tools, errors, onAdd, onUpdate, onDelete }: ToolsTabProps) {
             <Wrench className="w-8 h-8 text-white/20" />
           </div>
           <p className="text-white/60 mb-4">No tools defined yet</p>
-          <button
-            onClick={onAdd}
-            className="px-4 py-2 bg-white text-black rounded-full text-sm font-medium hover:bg-white/90 transition-colors"
-          >
-            Create First Tool
-          </button>
+          <div className="flex gap-3">
+            <button
+              onClick={() => setShowLibrary(true)}
+              className="px-4 py-2 bg-neon-purple/10 text-neon-purple hover:bg-neon-purple/20 rounded-full text-sm font-medium transition-colors border border-neon-purple/20"
+            >
+              Browse Library
+            </button>
+            <button
+              onClick={() => onAdd()}
+              className="px-4 py-2 bg-white text-black rounded-full text-sm font-medium hover:bg-white/90 transition-colors"
+            >
+              Create Custom Tool
+            </button>
+          </div>
         </div>
       ) : (
         <div className="space-y-4">

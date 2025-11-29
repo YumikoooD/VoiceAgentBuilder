@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { RealtimeAgent, tool } from '@openai/agents/realtime';
+import { getGmailAccessToken } from './useGmailAuth';
 
 // Type matching the builder's AgentConfig
 interface BuilderAgentConfig {
@@ -109,6 +110,12 @@ function convertToRealtimeAgent(config: BuilderAgentConfig): RealtimeAgent {
       execute: async (input: unknown) => {
         // Log the tool call for debugging
         console.log(`[Custom Agent] Tool "${toolConfig.name}" called with:`, input);
+
+        // Gmail Integration Logic
+        if (toolConfig.name.startsWith('gmail_')) {
+          return executeGmailTool(toolConfig.name, input);
+        }
+
         // Return a stub response - in a real implementation, you'd want custom logic
         return { 
           success: true, 
@@ -127,5 +134,65 @@ function convertToRealtimeAgent(config: BuilderAgentConfig): RealtimeAgent {
     tools,
     handoffs: [], // Handoffs would need cross-agent resolution
   });
+}
+
+/**
+ * Execute Gmail tools using the real Gmail API via our proxy
+ */
+async function executeGmailTool(toolName: string, args: any): Promise<any> {
+  const accessToken = getGmailAccessToken();
+
+  if (!accessToken) {
+    return { 
+      error: 'Gmail not connected. Please connect your Gmail account in the Agent Builder settings.',
+      requiresAuth: true
+    };
+  }
+
+  console.log(`[Gmail API] Executing ${toolName}`, args);
+
+  // Map tool names to API actions
+  const actionMap: Record<string, string> = {
+    'gmail_list_unread': 'list_unread',
+    'gmail_read_email': 'read_email',
+    'gmail_send_email': 'send_email',
+    'gmail_delete_email': 'delete_email',
+    'gmail_create_draft': 'create_draft',
+  };
+
+  const action = actionMap[toolName];
+  if (!action) {
+    return { error: `Unknown Gmail tool: ${toolName}` };
+  }
+
+  try {
+    const response = await fetch('/api/gmail/proxy', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action,
+        accessToken,
+        params: args,
+      }),
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      // If unauthorized, token might be expired
+      if (response.status === 401) {
+        return { 
+          error: 'Gmail session expired. Please reconnect your Gmail account.',
+          requiresAuth: true
+        };
+      }
+      return { error: result.error || 'Gmail API error' };
+    }
+
+    return result;
+  } catch (error) {
+    console.error('[Gmail API] Error:', error);
+    return { error: error instanceof Error ? error.message : 'Failed to call Gmail API' };
+  }
 }
 

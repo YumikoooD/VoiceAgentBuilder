@@ -8,11 +8,8 @@ import {
   MicOff, 
   Volume2, 
   VolumeX, 
-  Activity, 
   FileText, 
-  Settings,
-  Power,
-  Phone
+  Power
 } from "lucide-react";
 import { cn } from "@/app/lib/utils";
 

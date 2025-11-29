@@ -8,10 +8,8 @@ import { convertFromRealtimeAgent } from '../utils/agentConverter';
 import AgentForm from './AgentForm';
 import AgentList from './AgentList';
 import PreviewPanel from './PreviewPanel';
-import Link from 'next/link';
-import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Download, Upload, Plus, Save, Trash2, Play, Box } from 'lucide-react';
+import { Download, Upload, Plus } from 'lucide-react';
 
 export default function AgentBuilder() {
   const { agents, isLoaded, saveAgent, deleteAgent, exportAgents, importAgents, exportSingleAgent } = useAgentStorage();

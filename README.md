@@ -67,6 +67,7 @@ The platform is built on Next.js 15 with React 19, using the OpenAI Agents SDK f
 - Node.js 20+ 
 - npm or yarn
 - OpenAI API key
+- (Optional) Google Cloud Project with Gmail API enabled for email integration
 
 ### Installation
 
@@ -75,14 +76,63 @@ The platform is built on Next.js 15 with React 19, using the OpenAI Agents SDK f
 npm install
 
 # Set up environment variables
-# Create a .env file or export OPENAI_API_KEY
-export OPENAI_API_KEY=your_api_key_here
+# Create a .env file with the following:
+cp .env.example .env
+# Then edit .env with your keys
+```
 
+**Required Environment Variables:**
+
+```env
+# OpenAI API Key (required)
+OPENAI_API_KEY=your_openai_api_key_here
+
+# Google OAuth2 (optional - for Gmail integration)
+GOOGLE_CLIENT_ID=your_google_client_id.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=your_google_client_secret
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+```
+
+```bash
 # Start development server
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser. The app defaults to the `chatSupervisor` agent configuration.
+Open [http://localhost:3000](http://localhost:3000) in your browser. The app defaults to the Agent Builder page.
+
+## Gmail Integration
+
+The platform supports real Gmail integration with OAuth2 authentication. This allows your agents to:
+
+- 📬 **Read unread emails** - List and read emails from your inbox
+- ✉️ **Send emails** - Compose and send emails on your behalf
+- 🗑️ **Delete emails** - Move emails to trash
+- 📝 **Create drafts** - Save email drafts for later
+
+### Setting Up Gmail OAuth2
+
+1. **Create a Google Cloud Project**
+   - Go to [Google Cloud Console](https://console.cloud.google.com/)
+   - Create a new project or select an existing one
+
+2. **Enable Gmail API**
+   - Navigate to "APIs & Services" > "Library"
+   - Search for "Gmail API" and enable it
+
+3. **Create OAuth2 Credentials**
+   - Go to "APIs & Services" > "Credentials"
+   - Click "Create Credentials" > "OAuth client ID"
+   - Select "Web application"
+   - Add authorized redirect URI: `http://localhost:3000/api/gmail/callback`
+   - Copy the Client ID and Client Secret
+
+4. **Configure Environment Variables**
+   - Add `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` to your `.env` file
+
+5. **Connect Gmail in the App**
+   - Create an agent with Gmail tools (use "Add Capability" > "Gmail Integration")
+   - A "Connect Gmail" button will appear in the Tools tab
+   - Click to authorize access to your Gmail account
 
 ### Configuration
 

@@ -2,12 +2,9 @@
 
 import React, { useState } from 'react';
 import { AgentConfig, VOICE_OPTIONS } from '../types';
-import { motion } from 'framer-motion';
 import { 
   ArrowLeft, 
   Download, 
-  Code, 
-  FileJson, 
   Check, 
   Copy, 
   Pencil, 
@@ -16,7 +13,6 @@ import {
   GitCompare, 
   Play
 } from 'lucide-react';
-import { useVoiceVisualization } from '../../hooks/useVoiceVisualization';
 import VoiceVisualizer from '../../components/VoiceVisualizer';
 
 interface PreviewPanelProps {

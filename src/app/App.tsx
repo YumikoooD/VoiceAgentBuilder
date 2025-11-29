@@ -5,8 +5,8 @@ import { useSearchParams } from "next/navigation";
 import { v4 as uuidv4 } from "uuid";
 import Image from "next/image";
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
-import { MessageSquare, Terminal, Activity, Settings, Mic } from "lucide-react";
+import { AnimatePresence } from "framer-motion";
+import { Settings, Mic } from "lucide-react";
 
 // UI components
 import Transcript from "./components/Transcript";

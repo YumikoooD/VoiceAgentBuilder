@@ -89,12 +89,18 @@ export function convertFromRealtimeAgent(agent: RealtimeAgent, isReadOnly: boole
     });
   }
 
+  // Instructions can be a string or a function in RealtimeAgent
+  // We only support string instructions in the builder
+  const instructionsValue = typeof agent.instructions === 'string' 
+    ? agent.instructions 
+    : '[Dynamic instructions - cannot be displayed]';
+
   return {
     id: agent.name || crypto.randomUUID(), // Use name as ID if stable, or generate one
     name: agent.name || 'Unnamed Agent',
     voice: (agent.voice || 'sage') as VoiceOption,
     handoffDescription: agent.handoffDescription || '',
-    instructions: agent.instructions || '',
+    instructions: instructionsValue,
     tools,
     handoffs: [], // Mapping handoffs back is complex without IDs, leaving empty for now
     createdAt: new Date().toISOString(),
@@ -119,13 +125,15 @@ export function convertAgentsWithHandoffs(configs: AgentConfig[]): RealtimeAgent
   configs.forEach(config => {
     const agent = agentMap.get(config.id);
     if (agent && config.handoffs.length > 0) {
-      const handoffAgents = config.handoffs
+      // Collect handoff agents for reference
+      const _handoffAgents = config.handoffs
         .map(handoffId => agentMap.get(handoffId))
         .filter((a): a is RealtimeAgent => a !== undefined);
       
       // Note: RealtimeAgent handoffs are set at construction time
       // This is a limitation - handoffs would need to be set during construction
       // For now, we'll return agents without cross-handoffs
+      void _handoffAgents; // Suppress unused variable warning
     }
   });
 
