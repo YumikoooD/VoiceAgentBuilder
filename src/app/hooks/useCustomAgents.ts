@@ -24,7 +24,8 @@ interface BuilderToolConfig {
 interface BuilderAgentConfig {
   id: string;
   name: string;
-  voice: 'sage' | 'alloy' | 'echo' | 'fable' | 'onyx' | 'shimmer';
+  // Voices supported by OpenAI Realtime API (fable, onyx, nova are TTS-only)
+  voice: 'sage' | 'alloy' | 'ash' | 'ballad' | 'coral' | 'echo' | 'shimmer' | 'verse';
   handoffDescription: string;
   instructions: string;
   tools: BuilderToolConfig[];

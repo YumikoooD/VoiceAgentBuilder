@@ -83,7 +83,7 @@ Transfer to the Technical Specialist when:
 // Technical Specialist Agent
 const technicalSpecialistAgent = new RealtimeAgent({
   name: 'Technical Specialist',
-  voice: 'onyx',
+  voice: 'ash', // Changed from 'onyx' - onyx is TTS-only, not supported by Realtime API
   handoffDescription: 'Advanced technical support for complex issues, debugging, and escalated problems.',
   instructions: `# Technical Specialist
 

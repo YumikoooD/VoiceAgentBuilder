@@ -32,15 +32,19 @@ export interface AgentConfig {
   isReadOnly?: boolean;
 }
 
-export type VoiceOption = 'sage' | 'alloy' | 'echo' | 'fable' | 'onyx' | 'shimmer';
+// Voices supported by OpenAI Realtime API (gpt-realtime models)
+// Note: fable, onyx, nova are TTS-only and NOT supported by Realtime API
+export type VoiceOption = 'sage' | 'alloy' | 'ash' | 'ballad' | 'coral' | 'echo' | 'shimmer' | 'verse';
 
 export const VOICE_OPTIONS: { value: VoiceOption; label: string; description: string }[] = [
   { value: 'sage', label: 'Sage', description: 'Calm and wise' },
   { value: 'alloy', label: 'Alloy', description: 'Neutral and balanced' },
+  { value: 'ash', label: 'Ash', description: 'Warm and conversational' },
+  { value: 'ballad', label: 'Ballad', description: 'Expressive and melodic' },
+  { value: 'coral', label: 'Coral', description: 'Friendly and approachable' },
   { value: 'echo', label: 'Echo', description: 'Soft and reflective' },
-  { value: 'fable', label: 'Fable', description: 'Warm and narrative' },
-  { value: 'onyx', label: 'Onyx', description: 'Deep and authoritative' },
   { value: 'shimmer', label: 'Shimmer', description: 'Bright and energetic' },
+  { value: 'verse', label: 'Verse', description: 'Clear and articulate' },
 ];
 
 export const PARAMETER_TYPES = [

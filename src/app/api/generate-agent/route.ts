@@ -10,7 +10,7 @@ const SYSTEM_PROMPT = `You are an expert at creating voice agent configurations.
 Your response must be a valid JSON object with this exact structure:
 {
   "name": "agentName (camelCase, no spaces)",
-  "voice": "one of: sage, alloy, echo, fable, onyx, shimmer",
+  "voice": "one of: sage, alloy, ash, ballad, coral, echo, shimmer, verse",
   "handoffDescription": "A brief description of what this agent handles (1-2 sentences)",
   "instructions": "Detailed instructions for the agent including personality, capabilities, guidelines, and example interactions (use markdown formatting)",
   "tools": [
@@ -31,13 +31,15 @@ Your response must be a valid JSON object with this exact structure:
 
 Guidelines for generating agents:
 1. **Name**: Use camelCase, descriptive but concise (e.g., "snowboardShopAssistant")
-2. **Voice**: Choose based on personality:
+2. **Voice**: Choose based on personality (Realtime API supported voices):
    - sage: Calm, wise, professional
    - alloy: Neutral, balanced
+   - ash: Warm, conversational
+   - ballad: Expressive, melodic
+   - coral: Friendly, approachable
    - echo: Soft, reflective
-   - fable: Warm, narrative, friendly
-   - onyx: Deep, authoritative
    - shimmer: Bright, energetic
+   - verse: Clear, articulate
 3. **Instructions**: Be detailed! Include:
    - Personality and tone section
    - Core responsibilities

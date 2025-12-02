@@ -1,6 +1,6 @@
 # Voice Agent Platform
 
-> Build and deploy intelligent voice agents with real-time conversations, a visual agent builder, and Gmail/Calendar + webhook integrations.
+> Build and deploy intelligent voice agents with real-time conversations, a visual agent builder, and Gmail/Calendar + webhook integrations. (DON'T USE CHROME FOR THIS APP, CHROME DOESN'T HANDLE WEBRTC)
 
 ![Voice Chat Interface](/public/screenshot_chat.png)
 

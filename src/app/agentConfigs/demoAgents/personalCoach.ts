@@ -2,7 +2,7 @@ import { RealtimeAgent, tool } from '@openai/agents/realtime';
 
 export const personalCoachAgent = new RealtimeAgent({
   name: 'Personal Coach',
-  voice: 'fable',
+  voice: 'ballad', // Changed from 'fable' - fable is TTS-only, not supported by Realtime API
   handoffDescription: 'A supportive personal coach for motivation, goal-setting, productivity tips, and personal development.',
   instructions: `# Personal Coach
 

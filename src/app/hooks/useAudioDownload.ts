@@ -1,11 +1,36 @@
 import { useRef } from "react";
 import { convertWebMBlobToWav } from "../lib/audioUtils";
 
+/**
+ * Gets a supported MIME type for MediaRecorder.
+ * Falls back to browser default if none of the preferred types are supported.
+ */
+function getSupportedMimeType(): string | undefined {
+  const types = [
+    "audio/webm;codecs=opus",
+    "audio/webm",
+    "audio/ogg;codecs=opus",
+    "audio/ogg",
+    "audio/mp4",
+  ];
+
+  for (const type of types) {
+    if (MediaRecorder.isTypeSupported(type)) {
+      return type;
+    }
+  }
+
+  // Return undefined to let MediaRecorder use browser default
+  return undefined;
+}
+
 function useAudioDownload() {
   // Ref to store the MediaRecorder instance.
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   // Ref to collect all recorded Blob chunks.
   const recordedChunksRef = useRef<Blob[]>([]);
+  // Ref to store the MIME type used for recording.
+  const mimeTypeRef = useRef<string>("audio/webm");
 
   /**
    * Starts recording by combining the provided remote stream with
@@ -13,6 +38,9 @@ function useAudioDownload() {
    * @param remoteStream - The remote MediaStream (e.g., from the audio element).
    */
   const startRecording = async (remoteStream: MediaStream) => {
+    // Clear previous recording chunks
+    recordedChunksRef.current = [];
+    
     let micStream: MediaStream;
     try {
       micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -42,9 +70,14 @@ function useAudioDownload() {
       console.error("Error connecting microphone stream to the audio context:", err);
     }
 
-    const options = { mimeType: "audio/webm" };
+    // Get a supported MIME type, or use browser default
+    const mimeType = getSupportedMimeType();
+    const options = mimeType ? { mimeType } : undefined;
+    
     try {
       const mediaRecorder = new MediaRecorder(destination.stream, options);
+      // Store the actual MIME type used (from options or MediaRecorder's default)
+      mimeTypeRef.current = mediaRecorder.mimeType || mimeType || "audio/webm";
       mediaRecorder.ondataavailable = (event: BlobEvent) => {
         if (event.data && event.data.size > 0) {
           recordedChunksRef.current.push(event.data);
@@ -88,12 +121,13 @@ function useAudioDownload() {
       return;
     }
     
-    // Combine the recorded chunks into a single WebM blob.
-    const webmBlob = new Blob(recordedChunksRef.current, { type: "audio/webm" });
+    // Combine the recorded chunks into a single blob using the MIME type that was used for recording.
+    const audioBlob = new Blob(recordedChunksRef.current, { type: mimeTypeRef.current });
 
     try {
-      // Convert the WebM blob into a WAV blob.
-      const wavBlob = await convertWebMBlobToWav(webmBlob);
+      // Convert the audio blob into a WAV blob.
+      // Note: convertWebMBlobToWav can handle various audio formats via decodeAudioData
+      const wavBlob = await convertWebMBlobToWav(audioBlob);
       const url = URL.createObjectURL(wavBlob);
 
       // Generate a formatted datetime string (replace characters not allowed in filenames).
